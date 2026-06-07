@@ -1,532 +1,561 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Trading Signals</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
+    :root {
+      --bg:       #080c12;
+      --surface:  #0f1620;
+      --border:   #1e2d40;
+      --text:     #e2eaf4;
+      --muted:    #4a6080;
+      --green:    #00e676;
+      --red:      #ff3d57;
+      --yellow:   #ffc107;
+      --blue:     #29b6f6;
+      --gold:     #ffd700;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: #0d1117;
-      color: #e6edf3;
-      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
       min-height: 100vh;
-      padding: 24px 16px;
     }
 
-    header {
-      text-align: center;
-      margin-bottom: 32px;
-    }
-
-    header h1 {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: #58a6ff;
-      letter-spacing: 1px;
-    }
-
-    header p {
-      color: #8b949e;
-      font-size: 0.9rem;
-      margin-top: 6px;
-    }
-
-    #last-update {
-      color: #3fb950;
-      font-size: 0.8rem;
-      margin-top: 4px;
-    }
-
-    /* API KEY SETUP */
-    #api-setup {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 12px;
-      padding: 24px;
-      max-width: 520px;
-      margin: 0 auto 32px;
-      text-align: center;
-    }
-
-    #api-setup h2 { color: #f0a500; margin-bottom: 8px; font-size: 1rem; }
-    #api-setup p { color: #8b949e; font-size: 0.85rem; margin-bottom: 16px; line-height: 1.5; }
-    #api-setup a { color: #58a6ff; }
-
-    #api-setup input {
-      width: 100%;
-      padding: 10px 14px;
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 8px;
-      color: #e6edf3;
-      font-size: 0.95rem;
-      margin-bottom: 12px;
-      outline: none;
-    }
-
-    #api-setup input:focus { border-color: #58a6ff; }
-
-    #api-setup button {
-      background: #238636;
-      color: #fff;
-      border: none;
-      padding: 10px 28px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: 600;
-    }
-
-    #api-setup button:hover { background: #2ea043; }
-
-    /* CARDS */
-    #cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-      max-width: 960px;
-      margin: 0 auto;
-    }
-
-    .card {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 14px;
-      padding: 24px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: var(--accent, #58a6ff);
-    }
-
-    .card-header {
+    /* ── TOP BAR ── */
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+    }
+    .topbar-logo { font-size: 1.1rem; font-weight: 700; color: var(--blue); letter-spacing: 1px; }
+    .topbar-logo span { color: var(--text); }
+    .topbar-time { color: var(--muted); font-size: 0.82rem; }
+    #live-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { box-shadow: 0 0 0 0 rgba(0,230,118,.5); }
+      50%      { box-shadow: 0 0 0 6px rgba(0,230,118,0); }
+    }
+
+    /* ── MAIN ── */
+    main { padding: 28px 24px; max-width: 1200px; margin: 0 auto; }
+
+    h2.section-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
       margin-bottom: 18px;
     }
 
-    .card-title {
+    /* ── API SETUP ── */
+    #api-setup {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 500px;
+      margin: 60px auto;
+      text-align: center;
+    }
+    #api-setup .icon { font-size: 2.5rem; margin-bottom: 16px; }
+    #api-setup h2 { color: var(--blue); margin-bottom: 10px; font-size: 1.2rem; }
+    #api-setup p { color: var(--muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 20px; }
+    #api-setup a { color: var(--blue); }
+    #api-key-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+      margin-bottom: 14px;
+      letter-spacing: 1px;
+    }
+    #api-key-input:focus { border-color: var(--blue); }
+    #save-btn {
+      width: 100%;
+      background: var(--blue);
+      color: #000;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
       font-size: 1rem;
       font-weight: 700;
-      color: #e6edf3;
+      cursor: pointer;
+    }
+    #save-btn:hover { filter: brightness(1.15); }
+
+    /* ── CARDS GRID ── */
+    #dashboard { display: none; }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 20px;
+      margin-bottom: 28px;
     }
 
-    .card-icon { font-size: 1.4rem; }
-
-    .price {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #e6edf3;
-      margin-bottom: 4px;
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
     }
-
-    .price-change {
-      font-size: 0.85rem;
-      margin-bottom: 18px;
+    .card-top-bar {
+      height: 3px;
+      width: 100%;
     }
+    .card-inner { padding: 20px 22px; }
 
-    .positive { color: #3fb950; }
-    .negative { color: #f85149; }
-    .neutral  { color: #8b949e; }
+    /* header row */
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    .card-name { font-size: 0.78rem; color: var(--muted); font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; }
+    .card-price { font-size: 2rem; font-weight: 800; line-height: 1; margin-top: 4px; }
+    .card-change { font-size: 0.82rem; margin-top: 4px; }
 
-    /* SIGNAL BADGE */
-    .signal-box {
+    /* SIGNAL PILL */
+    .signal-pill {
       display: flex;
       align-items: center;
-      gap: 12px;
-      background: #0d1117;
-      border-radius: 10px;
-      padding: 14px 16px;
-      margin-bottom: 14px;
-    }
-
-    .signal-badge {
+      gap: 10px;
+      padding: 10px 16px;
+      border-radius: 50px;
       font-size: 1.1rem;
       font-weight: 800;
       letter-spacing: 2px;
-      padding: 6px 18px;
-      border-radius: 8px;
-      min-width: 90px;
-      text-align: center;
+      width: fit-content;
+    }
+    .signal-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .pill-long    { background: rgba(0,230,118,.1);  color: var(--green);  border: 1.5px solid var(--green); }
+    .pill-short   { background: rgba(255,61,87,.1);  color: var(--red);    border: 1.5px solid var(--red); }
+    .pill-neutral { background: rgba(255,193,7,.08);  color: var(--yellow); border: 1.5px solid var(--yellow); }
+    .pill-loading { background: rgba(41,182,246,.1); color: var(--blue);   border: 1.5px solid var(--blue); }
+
+    .dot-long    { background: var(--green); animation: pulse-green 1.5s ease-in-out infinite; }
+    .dot-short   { background: var(--red);   animation: pulse-red   1.5s ease-in-out infinite; }
+    .dot-neutral { background: var(--muted); }
+
+    @keyframes pulse-green {
+      0%,100% { box-shadow: 0 0 0 0 rgba(0,230,118,.6); }
+      50%      { box-shadow: 0 0 0 7px rgba(0,230,118,0); }
+    }
+    @keyframes pulse-red {
+      0%,100% { box-shadow: 0 0 0 0 rgba(255,61,87,.6); }
+      50%      { box-shadow: 0 0 0 7px rgba(255,61,87,0); }
     }
 
-    .badge-long    { background: rgba(63,185,80,0.15);  color: #3fb950; border: 1px solid #3fb950; }
-    .badge-short   { background: rgba(248,81,73,0.15);  color: #f85149; border: 1px solid #f85149; }
-    .badge-neutral { background: rgba(139,148,158,0.15);color: #8b949e; border: 1px solid #8b949e; }
-    .badge-loading { background: rgba(88,166,255,0.10); color: #58a6ff; border: 1px solid #58a6ff; }
-
-    .signal-reason {
-      font-size: 0.8rem;
-      color: #8b949e;
-      line-height: 1.4;
+    .signal-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 14px 0 10px;
     }
+    .signal-reason { font-size: 0.78rem; color: var(--muted); max-width: 200px; text-align: right; line-height: 1.4; }
 
-    /* INDICATORS */
+    /* INDICATORS ROW */
     .indicators {
       display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
     }
-
-    .indicator {
-      background: #0d1117;
-      border: 1px solid #21262d;
-      border-radius: 8px;
-      padding: 8px 12px;
+    .ind {
       flex: 1;
-      min-width: 80px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
       text-align: center;
     }
+    .ind-label { font-size: 0.65rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
+    .ind-val   { font-size: 1rem; font-weight: 700; }
+    .col-green  { color: var(--green); }
+    .col-red    { color: var(--red); }
+    .col-yellow { color: var(--yellow); }
+    .col-muted  { color: var(--muted); }
 
-    .indicator-label {
-      font-size: 0.7rem;
-      color: #8b949e;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
+    /* CHART */
+    .chart-wrap { height: 90px; position: relative; }
+
+    /* REFRESH */
+    .refresh-row {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
     }
-
-    .indicator-value {
-      font-size: 0.95rem;
-      font-weight: 700;
-    }
-
-    /* REFRESH BUTTON */
     #refresh-btn {
-      display: block;
-      margin: 28px auto 0;
-      background: #21262d;
-      color: #e6edf3;
-      border: 1px solid #30363d;
-      padding: 10px 28px;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 20px;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 0.95rem;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
+    #refresh-btn:hover { border-color: var(--blue); color: var(--blue); }
+    #last-upd { font-size: 0.78rem; color: var(--muted); }
 
-    #refresh-btn:hover { background: #30363d; }
-
-    .spinner {
-      display: inline-block;
-      animation: spin 1s linear infinite;
-    }
-
+    .spin { display: inline-block; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    footer {
+    /* DISCLAIMER */
+    .disclaimer {
       text-align: center;
-      margin-top: 32px;
-      color: #8b949e;
+      color: var(--muted);
       font-size: 0.75rem;
+      margin-top: 24px;
+      line-height: 1.6;
     }
+    .disclaimer strong { color: var(--yellow); }
 
-    footer strong { color: #f0a500; }
+    /* CHANGE API */
+    #change-key-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.75rem;
+      cursor: pointer;
+      text-decoration: underline;
+      margin-top: 6px;
+    }
+    #change-key-btn:hover { color: var(--text); }
   </style>
 </head>
 <body>
 
-<header>
-  <h1>📈 Trading Signals</h1>
-  <p>EUR/USD · Petrolio WTI · Oro XAU/USD</p>
-  <div id="last-update"></div>
-</header>
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">📈 TRADING<span>SIGNALS</span></div>
+  <div class="topbar-time">
+    <span id="live-dot"></span>
+    <span id="clock">--:--:--</span>
+  </div>
+</div>
 
-<!-- API KEY SETUP (nascosto dopo il salvataggio) -->
+<!-- API SETUP -->
 <div id="api-setup">
-  <h2>🔑 Inserisci la tua API Key gratuita</h2>
+  <div class="icon">🔑</div>
+  <h2>Inserisci la tua API Key</h2>
   <p>
     Ottieni una chiave gratuita su
-    <a href="https://www.alphavantage.co/support/#api-key" target="_blank">alphavantage.co</a>
-    (gratis, basta registrarsi).<br/>
-    La chiave viene salvata nel tuo browser — non serve reinserirla.
+    <a href="https://www.alphavantage.co/support/#api-key" target="_blank">alphavantage.co</a>.<br/>
+    Viene salvata nel browser — non serve reinserirla.
   </p>
-  <input type="text" id="api-key-input" placeholder="Es. ABCD1234EFGH5678" />
-  <br/>
-  <button onclick="saveApiKey()">Salva e carica i dati</button>
+  <input type="text" id="api-key-input" placeholder="Incolla qui la tua chiave API"/>
+  <button id="save-btn" onclick="saveApiKey()">Carica i mercati →</button>
 </div>
 
-<!-- CARDS DEI MERCATI -->
-<div id="cards">
-  <div class="card" style="--accent:#58a6ff" id="card-eurusd">
-    <div class="card-header">
-      <span class="card-title">EUR / USD</span>
-      <span class="card-icon">💶</span>
-    </div>
-    <div class="price" id="price-eurusd">—</div>
-    <div class="price-change" id="change-eurusd">In attesa dei dati...</div>
-    <div class="signal-box">
-      <div class="signal-badge badge-loading" id="signal-eurusd">...</div>
-      <div class="signal-reason" id="reason-eurusd">Caricamento in corso</div>
-    </div>
-    <div class="indicators">
-      <div class="indicator">
-        <div class="indicator-label">RSI 14</div>
-        <div class="indicator-value" id="rsi-eurusd">—</div>
-      </div>
-      <div class="indicator">
-        <div class="indicator-label">MA5</div>
-        <div class="indicator-value" id="ma5-eurusd">—</div>
-      </div>
-      <div class="indicator">
-        <div class="indicator-label">MA20</div>
-        <div class="indicator-value" id="ma20-eurusd">—</div>
-      </div>
-    </div>
+<!-- DASHBOARD -->
+<main id="dashboard">
+  <div class="refresh-row">
+    <span id="last-upd"></span>
+    <button id="refresh-btn" onclick="loadAll()">
+      <span id="refresh-icon">🔄</span> Aggiorna
+    </button>
+    <button id="change-key-btn" onclick="changeKey()">Cambia chiave API</button>
   </div>
 
-  <div class="card" style="--accent:#f0a500" id="card-oil">
-    <div class="card-header">
-      <span class="card-title">Petrolio WTI</span>
-      <span class="card-icon">🛢️</span>
-    </div>
-    <div class="price" id="price-oil">—</div>
-    <div class="price-change" id="change-oil">In attesa dei dati...</div>
-    <div class="signal-box">
-      <div class="signal-badge badge-loading" id="signal-oil">...</div>
-      <div class="signal-reason" id="reason-oil">Caricamento in corso</div>
-    </div>
-    <div class="indicators">
-      <div class="indicator">
-        <div class="indicator-label">RSI 14</div>
-        <div class="indicator-value" id="rsi-oil">—</div>
+  <h2 class="section-title">Mercati in tempo reale</h2>
+
+  <div class="cards-grid">
+    <!-- EUR/USD -->
+    <div class="card" id="card-eurusd">
+      <div class="card-top-bar" style="background: linear-gradient(90deg,#29b6f6,#0288d1)"></div>
+      <div class="card-inner">
+        <div class="card-header">
+          <div>
+            <div class="card-name">💶 EUR / USD</div>
+            <div class="card-price" id="price-eurusd">—</div>
+            <div class="card-change" id="change-eurusd">Caricamento...</div>
+          </div>
+          <div id="pill-eurusd" class="signal-pill pill-loading">
+            <span class="signal-dot"></span> ...
+          </div>
+        </div>
+        <div class="indicators">
+          <div class="ind"><div class="ind-label">RSI 14</div><div class="ind-val" id="rsi-eurusd">—</div></div>
+          <div class="ind"><div class="ind-label">MA 5</div><div class="ind-val" id="ma5-eurusd">—</div></div>
+          <div class="ind"><div class="ind-label">MA 20</div><div class="ind-val" id="ma20-eurusd">—</div></div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-eurusd"></canvas></div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:6px" id="reason-eurusd"></div>
       </div>
-      <div class="indicator">
-        <div class="indicator-label">MA5</div>
-        <div class="indicator-value" id="ma5-oil">—</div>
-      </div>
-      <div class="indicator">
-        <div class="indicator-label">MA20</div>
-        <div class="indicator-value" id="ma20-oil">—</div>
+    </div>
+
+    <!-- PETROLIO WTI -->
+    <div class="card" id="card-oil">
+      <div class="card-top-bar" style="background: linear-gradient(90deg,#ffc107,#ff8f00)"></div>
+      <div class="card-inner">
+        <div class="card-header">
+          <div>
+            <div class="card-name">🛢️ Petrolio WTI</div>
+            <div class="card-price" id="price-oil">—</div>
+            <div class="card-change" id="change-oil">Caricamento...</div>
+          </div>
+          <div id="pill-oil" class="signal-pill pill-loading">
+            <span class="signal-dot"></span> ...
+          </div>
+        </div>
+        <div class="indicators">
+          <div class="ind"><div class="ind-label">RSI 14</div><div class="ind-val" id="rsi-oil">—</div></div>
+          <div class="ind"><div class="ind-label">MA 5</div><div class="ind-val" id="ma5-oil">—</div></div>
+          <div class="ind"><div class="ind-label">MA 20</div><div class="ind-val" id="ma20-oil">—</div></div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-oil"></canvas></div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:6px" id="reason-oil"></div>
       </div>
     </div>
+
   </div>
 
-  <div class="card" style="--accent:#ffd700" id="card-gold">
-    <div class="card-header">
-      <span class="card-title">Oro XAU / USD</span>
-      <span class="card-icon">🥇</span>
-    </div>
-    <div class="price" id="price-gold">—</div>
-    <div class="price-change" id="change-gold">In attesa dei dati...</div>
-    <div class="signal-box">
-      <div class="signal-badge badge-loading" id="signal-gold">...</div>
-      <div class="signal-reason" id="reason-gold">Caricamento in corso</div>
-    </div>
-    <div class="indicators">
-      <div class="indicator">
-        <div class="indicator-label">RSI 14</div>
-        <div class="indicator-value" id="rsi-gold">—</div>
-      </div>
-      <div class="indicator">
-        <div class="indicator-label">MA5</div>
-        <div class="indicator-value" id="ma5-gold">—</div>
-      </div>
-      <div class="indicator">
-        <div class="indicator-label">MA20</div>
-        <div class="indicator-value" id="ma20-gold">—</div>
-      </div>
-    </div>
+  <div class="disclaimer">
+    Dati: Alpha Vantage · Segnali basati su RSI(14) + MA5/MA20 · Aggiornamento giornaliero<br/>
+    <strong>⚠️ Solo scopo informativo — non è consulenza finanziaria</strong>
   </div>
-</div>
-
-<button id="refresh-btn" onclick="loadAll()" style="display:none">🔄 Aggiorna dati</button>
-
-<footer>
-  <p>Dati forniti da Alpha Vantage · Segnali basati su RSI(14) + MA5/MA20</p>
-  <p style="margin-top:6px"><strong>⚠️ Solo scopo informativo — non è consulenza finanziaria</strong></p>
-</footer>
+</main>
 
 <script>
-  const API_KEY_STORAGE = 'av_api_key';
+// ── OROLOGIO ───────────────────────────────────────────────────
+setInterval(() => {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('it-IT');
+}, 1000);
 
-  // ── UTILITIES ──────────────────────────────────────────────
-  function calcRSI(closes, period = 14) {
-    if (closes.length < period + 1) return null;
-    let gains = 0, losses = 0;
-    for (let i = 1; i <= period; i++) {
-      const diff = closes[i] - closes[i - 1];
-      if (diff >= 0) gains += diff; else losses -= diff;
+// ── CHARTS ────────────────────────────────────────────────────
+const charts = {};
+
+function drawChart(id, closes, color) {
+  const ctx = document.getElementById(`chart-${id}`).getContext('2d');
+  const labels = closes.map((_, i) => i);
+  if (charts[id]) charts[id].destroy();
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, 90);
+  gradient.addColorStop(0, color + '40');
+  gradient.addColorStop(1, color + '00');
+
+  charts[id] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: closes,
+        borderColor: color,
+        borderWidth: 2,
+        backgroundColor: gradient,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: ctx => ' ' + ctx.parsed.y.toFixed(4) }
+      }},
+      scales: {
+        x: { display: false },
+        y: { display: false }
+      },
+      animation: { duration: 800 }
     }
-    let avgGain = gains / period;
-    let avgLoss = losses / period;
-    for (let i = period + 1; i < closes.length; i++) {
-      const diff = closes[i] - closes[i - 1];
-      avgGain = (avgGain * (period - 1) + Math.max(diff, 0)) / period;
-      avgLoss = (avgLoss * (period - 1) + Math.max(-diff, 0)) / period;
-    }
-    if (avgLoss === 0) return 100;
-    const rs = avgGain / avgLoss;
-    return 100 - 100 / (1 + rs);
+  });
+}
+
+// ── CALCOLI ────────────────────────────────────────────────────
+function calcRSI(closes, period = 14) {
+  if (closes.length < period + 1) return null;
+  let gains = 0, losses = 0;
+  for (let i = 1; i <= period; i++) {
+    const d = closes[i] - closes[i-1];
+    if (d >= 0) gains += d; else losses -= d;
   }
-
-  function calcMA(closes, period) {
-    if (closes.length < period) return null;
-    return closes.slice(-period).reduce((a, b) => a + b, 0) / period;
+  let ag = gains/period, al = losses/period;
+  for (let i = period+1; i < closes.length; i++) {
+    const d = closes[i] - closes[i-1];
+    ag = (ag*(period-1) + Math.max(d,0)) / period;
+    al = (al*(period-1) + Math.max(-d,0)) / period;
   }
+  return al === 0 ? 100 : 100 - 100/(1 + ag/al);
+}
 
-  function computeSignal(rsi, ma5, ma20) {
-    let score = 0;
-    let reasons = [];
+function calcMA(closes, p) {
+  if (closes.length < p) return null;
+  return closes.slice(-p).reduce((a,b)=>a+b,0)/p;
+}
 
-    if (rsi !== null) {
-      if (rsi < 30)      { score -= 2; reasons.push(`RSI ${rsi.toFixed(1)} (ipervenduto)`); }
-      else if (rsi < 45) { score -= 1; reasons.push(`RSI ${rsi.toFixed(1)} (debolezza)`); }
-      else if (rsi > 70) { score += 2; reasons.push(`RSI ${rsi.toFixed(1)} (ipercomprato)`); }
-      else if (rsi > 55) { score += 1; reasons.push(`RSI ${rsi.toFixed(1)} (forza)`); }
-      else                { reasons.push(`RSI ${rsi.toFixed(1)} (neutro)`); }
-    }
-
-    if (ma5 !== null && ma20 !== null) {
-      if (ma5 > ma20)   { score -= 1; reasons.push('MA5 > MA20 (trend rialzista)'); }
-      else               { score += 1; reasons.push('MA5 < MA20 (trend ribassista)'); }
-    }
-
-    // score > 0 → SHORT (prezzo alto, probabile discesa)
-    // score < 0 → LONG  (prezzo basso, probabile salita)
-    if (score >= 2)       return { signal: 'SHORT', cls: 'badge-short',   reason: reasons.join(' · ') };
-    if (score <= -2)      return { signal: 'LONG',  cls: 'badge-long',    reason: reasons.join(' · ') };
-    return                       { signal: 'NEUTRO',cls: 'badge-neutral', reason: reasons.join(' · ') };
+function computeSignal(rsi, ma5, ma20) {
+  let score = 0, parts = [];
+  if (rsi !== null) {
+    if      (rsi < 30) { score -= 2; parts.push(`RSI ${rsi.toFixed(1)} ipervenduto → possibile rialzo`); }
+    else if (rsi < 45) { score -= 1; parts.push(`RSI ${rsi.toFixed(1)} zona debole`); }
+    else if (rsi > 70) { score += 2; parts.push(`RSI ${rsi.toFixed(1)} ipercomprato → possibile calo`); }
+    else if (rsi > 55) { score += 1; parts.push(`RSI ${rsi.toFixed(1)} zona forte`); }
+    else                { parts.push(`RSI ${rsi.toFixed(1)} neutro`); }
   }
-
-  function renderCard(id, price, prevPrice, closes, decimals = 4) {
-    const fmt = v => v.toFixed(decimals);
-    const change = price - prevPrice;
-    const changePct = (change / prevPrice * 100).toFixed(2);
-    const positive = change >= 0;
-
-    document.getElementById(`price-${id}`).textContent = fmt(price);
-
-    const changeEl = document.getElementById(`change-${id}`);
-    changeEl.textContent = `${positive ? '+' : ''}${fmt(change)} (${positive ? '+' : ''}${changePct}%)`;
-    changeEl.className = `price-change ${positive ? 'positive' : 'negative'}`;
-
-    const rsi  = calcRSI(closes);
-    const ma5  = calcMA(closes, 5);
-    const ma20 = calcMA(closes, 20);
-    const { signal, cls, reason } = computeSignal(rsi, ma5, ma20);
-
-    const sigEl = document.getElementById(`signal-${id}`);
-    sigEl.textContent = signal;
-    sigEl.className = `signal-badge ${cls}`;
-    document.getElementById(`reason-${id}`).textContent = reason;
-
-    document.getElementById(`rsi-${id}`).textContent  = rsi  ? rsi.toFixed(1)  : '—';
-    document.getElementById(`ma5-${id}`).textContent  = ma5  ? fmt(ma5)  : '—';
-    document.getElementById(`ma20-${id}`).textContent = ma20 ? fmt(ma20) : '—';
-
-    const rsiEl = document.getElementById(`rsi-${id}`);
-    if (rsi) {
-      rsiEl.className = `indicator-value ${rsi > 70 ? 'negative' : rsi < 30 ? 'positive' : 'neutral'}`;
-    }
+  if (ma5 && ma20) {
+    if (ma5 > ma20) { score -= 1; parts.push('Trend rialzista (MA5 > MA20)'); }
+    else             { score += 1; parts.push('Trend ribassista (MA5 < MA20)'); }
   }
+  if (score >= 2)  return { signal:'SHORT',  type:'short',   reason: parts.join(' · ') };
+  if (score <= -2) return { signal:'LONG',   type:'long',    reason: parts.join(' · ') };
+  return                 { signal:'ASPETTA', type:'neutral', reason: 'Segnali contrastanti — ' + parts.join(' · ') + '. Meglio non entrare adesso.' };
+}
 
-  function setError(id, msg) {
-    document.getElementById(`price-${id}`).textContent = 'Errore';
-    document.getElementById(`change-${id}`).textContent = msg;
-    document.getElementById(`signal-${id}`).textContent = '—';
-    document.getElementById(`reason-${id}`).textContent = msg;
-  }
+// ── RENDER ─────────────────────────────────────────────────────
+const COLORS = { eurusd:'#29b6f6', oil:'#ffc107', gold:'#ffd700' };
+const DECIMALS = { eurusd:4, oil:2, gold:2 };
 
-  // ── FETCH EUR/USD ───────────────────────────────────────────
-  async function fetchForex(from, to, apiKey) {
-    const url = `https://www.alphavantage.co/query?function=FX_DAILY&from_symbol=${from}&to_symbol=${to}&outputsize=compact&apikey=${apiKey}`;
-    const r = await fetch(url);
-    const data = await r.json();
-    if (data['Error Message'] || data['Note']) throw new Error(data['Error Message'] || data['Note']);
-    const ts = data['Time Series FX (Daily)'];
-    const dates = Object.keys(ts).sort().reverse().slice(0, 30);
-    const closes = dates.map(d => parseFloat(ts[d]['4. close'])).reverse();
-    return closes;
-  }
+function renderCard(id, closes) {
+  const dec = DECIMALS[id];
+  const price = closes.at(-1);
+  const prev  = closes.at(-2);
+  const change = price - prev;
+  const pct = (change/prev*100).toFixed(2);
 
-  // ── FETCH WTI OIL ───────────────────────────────────────────
-  async function fetchCommodity(symbol, apiKey) {
-    const url = `https://www.alphavantage.co/query?function=${symbol}&interval=daily&apikey=${apiKey}`;
-    const r = await fetch(url);
-    const data = await r.json();
-    if (data['Error Message'] || data['Note']) throw new Error(data['Error Message'] || data['Note']);
-    const ts = data.data;
-    const recent = ts.filter(d => d.value !== '.').slice(0, 30).reverse();
-    return recent.map(d => parseFloat(d.value));
-  }
+  document.getElementById(`price-${id}`).textContent = price.toFixed(dec);
 
-  // ── FETCH GOLD (XAU/USD) ────────────────────────────────────
-  async function fetchGold(apiKey) {
-    // Gold via forex endpoint
-    return fetchForex('XAU', 'USD', apiKey);
-  }
+  const chEl = document.getElementById(`change-${id}`);
+  chEl.textContent = `${change>=0?'+':''}${change.toFixed(dec)} (${change>=0?'+':''}${pct}%)`;
+  chEl.style.color = change >= 0 ? 'var(--green)' : 'var(--red)';
 
-  // ── LOAD ALL ────────────────────────────────────────────────
-  async function loadAll() {
-    const apiKey = localStorage.getItem(API_KEY_STORAGE);
-    if (!apiKey) return;
+  const rsi  = calcRSI(closes);
+  const ma5  = calcMA(closes, 5);
+  const ma20 = calcMA(closes, 20);
+  const { signal, type, reason } = computeSignal(rsi, ma5, ma20);
 
-    document.getElementById('refresh-btn').innerHTML = '<span class="spinner">⟳</span> Aggiornamento...';
+  // Pill
+  const pill = document.getElementById(`pill-${id}`);
+  pill.className = `signal-pill pill-${type}`;
+  pill.innerHTML = `<span class="signal-dot dot-${type}"></span> ${signal}`;
 
-    // Reset segnali
-    ['eurusd','oil','gold'].forEach(id => {
-      document.getElementById(`signal-${id}`).textContent = '...';
-      document.getElementById(`signal-${id}`).className = 'signal-badge badge-loading';
-      document.getElementById(`reason-${id}`).textContent = 'Caricamento...';
-    });
+  // Indicators
+  const rsiEl = document.getElementById(`rsi-${id}`);
+  rsiEl.textContent = rsi ? rsi.toFixed(1) : '—';
+  rsiEl.className = `ind-val ${rsi>70?'col-red':rsi<30?'col-green':'col-yellow'}`;
 
-    // EUR/USD
-    try {
-      const closes = await fetchForex('EUR', 'USD', apiKey);
-      renderCard('eurusd', closes.at(-1), closes.at(-2), closes, 4);
-    } catch(e) {
-      setError('eurusd', e.message.includes('Note') ? 'Limite API raggiunto (25/giorno)' : e.message);
-    }
+  const ma5El = document.getElementById(`ma5-${id}`);
+  ma5El.textContent = ma5 ? ma5.toFixed(dec) : '—';
+  ma5El.className = `ind-val ${ma5&&ma20 ? (ma5>ma20?'col-green':'col-red') : ''}`;
 
-    // OIL WTI
-    try {
-      const closes = await fetchCommodity('WTI', apiKey);
-      renderCard('oil', closes.at(-1), closes.at(-2), closes, 2);
-    } catch(e) {
-      setError('oil', e.message.includes('Note') ? 'Limite API raggiunto (25/giorno)' : e.message);
-    }
+  document.getElementById(`ma20-${id}`).textContent = ma20 ? ma20.toFixed(dec) : '—';
+  document.getElementById(`reason-${id}`).textContent = reason;
 
-    // GOLD
-    try {
-      const closes = await fetchGold(apiKey);
-      renderCard('gold', closes.at(-1), closes.at(-2), closes, 2);
-    } catch(e) {
-      setError('gold', e.message.includes('Note') ? 'Limite API raggiunto (25/giorno)' : e.message);
-    }
+  // Chart
+  drawChart(id, closes, COLORS[id]);
+}
 
-    const now = new Date().toLocaleString('it-IT');
-    document.getElementById('last-update').textContent = `Ultimo aggiornamento: ${now}`;
-    document.getElementById('refresh-btn').innerHTML = '🔄 Aggiorna dati';
-  }
+function setErr(id, msg) {
+  document.getElementById(`price-${id}`).textContent = 'Errore';
+  document.getElementById(`change-${id}`).textContent = msg;
+  document.getElementById(`pill-${id}`).innerHTML = `<span class="signal-dot"></span> —`;
+  document.getElementById(`reason-${id}`).textContent = msg;
+}
 
-  // ── API KEY ─────────────────────────────────────────────────
-  function saveApiKey() {
-    const key = document.getElementById('api-key-input').value.trim();
-    if (!key) { alert('Inserisci una chiave API valida'); return; }
-    localStorage.setItem(API_KEY_STORAGE, key);
+// ── FETCH ──────────────────────────────────────────────────────
+async function fetchForex(from, to, key) {
+  const url = `https://www.alphavantage.co/query?function=FX_DAILY&from_symbol=${from}&to_symbol=${to}&outputsize=compact&apikey=${key}`;
+  const d = await (await fetch(url)).json();
+  if (d['Error Message']) throw new Error('Chiave API non valida');
+  if (d['Note'] || d['Information']) throw new Error('Limite giornaliero raggiunto (25 richieste/giorno). Riprova domani.');
+  const ts = d['Time Series FX (Daily)'];
+  return Object.keys(ts).sort().slice(-30).map(k => parseFloat(ts[k]['4. close']));
+}
+
+async function fetchCommodity(sym, key) {
+  const url = `https://www.alphavantage.co/query?function=${sym}&interval=daily&apikey=${key}`;
+  const d = await (await fetch(url)).json();
+  if (d['Error Message']) throw new Error('Chiave API non valida');
+  if (d['Note'] || d['Information']) throw new Error('Limite giornaliero raggiunto. Riprova domani.');
+  return d.data.filter(x=>x.value!=='.').slice(0,30).reverse().map(x=>parseFloat(x.value));
+}
+
+// ── LOAD ALL ───────────────────────────────────────────────────
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function loadAll() {
+  const key = localStorage.getItem('av_key');
+  if (!key) return;
+
+  const btn = document.getElementById('refresh-btn');
+  document.getElementById('refresh-icon').className = 'spin';
+  btn.disabled = true;
+
+  // Le richieste vengono fatte in sequenza con 15s di pausa
+  // perché la chiave gratuita permette solo 5 richieste al minuto
+
+  try { await fetchForex('EUR','USD',key).then(c=>renderCard('eurusd',c)); }
+  catch(e) { setErr('eurusd', e.message); }
+
+  await sleep(10000);
+
+  try { await fetchCommodity('WTI',key).then(c=>renderCard('oil',c)); }
+  catch(e) { setErr('oil', e.message); }
+
+  document.getElementById('last-upd').textContent =
+    'Aggiornato: ' + new Date().toLocaleString('it-IT');
+  document.getElementById('refresh-icon').className = '';
+  btn.disabled = false;
+}
+
+// ── API KEY ────────────────────────────────────────────────────
+function saveApiKey() {
+  const k = document.getElementById('api-key-input').value.trim();
+  if (!k) { alert('Inserisci la chiave'); return; }
+  localStorage.setItem('av_key', k);
+  document.getElementById('api-setup').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  loadAll();
+}
+
+function changeKey() {
+  localStorage.removeItem('av_key');
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('api-setup').style.display = 'block';
+}
+
+// ── INIT ───────────────────────────────────────────────────────
+window.onload = () => {
+  const k = localStorage.getItem('av_key');
+  if (k) {
     document.getElementById('api-setup').style.display = 'none';
-    document.getElementById('refresh-btn').style.display = 'block';
+    document.getElementById('dashboard').style.display = 'block';
     loadAll();
   }
-
-  // ── INIT ────────────────────────────────────────────────────
-  window.onload = () => {
-    const saved = localStorage.getItem(API_KEY_STORAGE);
-    if (saved) {
-      document.getElementById('api-setup').style.display = 'none';
-      document.getElementById('refresh-btn').style.display = 'block';
-      loadAll();
-    }
-  };
+};
 </script>
 </body>
 </html>
