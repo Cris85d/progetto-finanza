@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trading Signals</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d1117;
+      color: #e6edf3;
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #58a6ff;
+      letter-spacing: 1px;
+    }
+
+    header p {
+      color: #8b949e;
+      font-size: 0.9rem;
+      margin-top: 6px;
+    }
+
+    #last-update {
+      color: #3fb950;
+      font-size: 0.8rem;
+      margin-top: 4px;
+    }
+
+    /* API KEY SETUP */
+    #api-setup {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 520px;
+      margin: 0 auto 32px;
+      text-align: center;
+    }
+
+    #api-setup h2 { color: #f0a500; margin-bottom: 8px; font-size: 1rem; }
+    #api-setup p { color: #8b949e; font-size: 0.85rem; margin-bottom: 16px; line-height: 1.5; }
+    #api-setup a { color: #58a6ff; }
+
+    #api-setup input {
+      width: 100%;
+      padding: 10px 14px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #e6edf3;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      outline: none;
+    }
+
+    #api-setup input:focus { border-color: #58a6ff; }
+
+    #api-setup button {
+      background: #238636;
+      color: #fff;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    #api-setup button:hover { background: #2ea043; }
+
+    /* CARDS */
+    #cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 14px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent, #58a6ff);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #e6edf3;
+    }
+
+    .card-icon { font-size: 1.4rem; }
+
+    .price {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #e6edf3;
+      margin-bottom: 4px;
+    }
+
+    .price-change {
+      font-size: 0.85rem;
+      margin-bottom: 18px;
+    }
+
+    .positive { color: #3fb950; }
+    .negative { color: #f85149; }
+    .neutral  { color: #8b949e; }
+
+    /* SIGNAL BADGE */
+    .signal-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #0d1117;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+
+    .signal-badge {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      padding: 6px 18px;
+      border-radius: 8px;
+      min-width: 90px;
+      text-align: center;
+    }
+
+    .badge-long    { background: rgba(63,185,80,0.15);  color: #3fb950; border: 1px solid #3fb950; }
+    .badge-short   { background: rgba(248,81,73,0.15);  color: #f85149; border: 1px solid #f85149; }
+    .badge-neutral { background: rgba(139,148,158,0.15);color: #8b949e; border: 1px solid #8b949e; }
+    .badge-loading { background: rgba(88,166,255,0.10); color: #58a6ff; border: 1px solid #58a6ff; }
+
+    .signal-reason {
+      font-size: 0.8rem;
+      color: #8b949e;
+      line-height: 1.4;
+    }
+
+    /* INDICATORS */
+    .indicators {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .indicator {
+      background: #0d1117;
+      border: 1px solid #21262d;
+      border-radius: 8px;
+      padding: 8px 12px;
+      flex: 1;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .indicator-label {
+      font-size: 0.7rem;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .indicator-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    /* REFRESH BUTTON */
+    #refresh-btn {
+      display: block;
+      margin: 28px auto 0;
+      background: #21262d;
+      color: #e6edf3;
+      border: 1px solid #30363d;
+      padding: 10px 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    #refresh-btn:hover { background: #30363d; }
+
+    .spinner {
+      display: inline-block;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer {
+      text-align: center;
+      margin-top: 32px;
+      color: #8b949e;
+      font-size: 0.75rem;
+    }
+
+    footer strong { color: #f0a500; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📈 Trading Signals</h1>
+  <p>EUR/USD · Petrolio WTI · Oro XAU/USD</p>
+  <div id="last-update"></div>
+</header>
+
+<!-- API KEY SETUP (nascosto dopo il salvataggio) -->
+<div id="api-setup">
+  <h2>🔑 Inserisci la tua API Key gratuita</h2>
+  <p>
+    Ottieni una chiave gratuita su
+    <a href="https://www.alphavantage.co/support/#api-key" target="_blank">alphavantage.co</a>
+    (gratis, basta registrarsi).<br/>
+    La chiave viene salvata nel tuo browser — non serve reinserirla.
+  </p>
+  <input type="text" id="api-key-input" placeholder="Es. ABCD1234EFGH5678" />
+  <br/>
+  <button onclick="saveApiKey()">Salva e carica i dati</button>
+</div>
+
+<!-- CARDS DEI MERCATI -->
+<div id="cards">
+  <div class="card" style="--accent:#58a6ff" id="card-eurusd">
+    <div class="card-header">
+      <span class="card-title">EUR / USD</span>
+      <span class="card-icon">💶</span>
+    </div>
+    <div class="price" id="price-eurusd">—</div>
+    <div class="price-change" id="change-eurusd">In attesa dei dati...</div>
+    <div class="signal-box">
+      <div class="signal-badge badge-loading" id="signal-eurusd">...</div>
+      <div class="signal-reason" id="reason-eurusd">Caricamento in corso</div>
+    </div>
+    <div class="indicators">
+      <div class="indicator">
+        <div class="indicator-label">RSI 14</div>
+        <div class="indicator-value" id="rsi-eurusd">—</div>
+      </div>
+      <div class="indicator">
+        <div class="indicator-label">MA5</div>
+        <div class="indicator-value" id="ma5-eurusd">—</div>
+      </div>
+      <div class="indicator">
+        <div class="indicator-label">MA20</div>
+        <div class="indicator-value" id="ma20-eurusd">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="--accent:#f0a500" id="card-oil">
+    <div class="card-header">
+      <span class="card-title">Petrolio WTI</span>
+      <span class="card-icon">🛢️</span>
+    </div>
+    <div class="price" id="price-oil">—</div>
+    <div class="price-change" id="change-oil">In attesa dei dati...</div>
+    <div class="signal-box">
+      <div class="signal-badge badge-loading" id="signal-oil">...</div>
+      <div class="signal-reason" id="reason-oil">Caricamento in corso</div>
+    </div>
+    <div class="indicators">
+      <div class="indicator">
+        <div class="indicator-label">RSI 14</div>
+        <div class="indicator-value" id="rsi-oil">—</div>
+      </div>
+      <div class="indicator">
+        <div class="indicator-label">MA5</div>
+        <div class="indicator-value" id="ma5-oil">—</div>
+      </div>
+      <div class="indicator">
+        <div class="indicator-label">MA20</div>
+        <div class="indicator-value" id="ma20-oil">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="--accent:#ffd700" id="card-gold">
+    <div class="card-header">
+      <span class="card-title">Oro XAU / USD</span>
+      <span class="card-icon">🥇</span>
+    </div>
+    <div class="price" id="price-gold">—</div>
+    <div class="price-change" id="change-gold">In attesa dei dati...</div>
+    <div class="signal-box">
+      <div class="signal-badge badge-loading" id="signal-gold">...</div>
+      <div class="signal-reason" id="reason-gold">Caricamento in corso</div>
+    </div>
+    <div class="indicators">
+      <div class="indicator">
+        <div class="indicator-label">RSI 14</div>
+        <div class="indicator-value" id="rsi-gold">—</div>
+      </div>
+      <div class="indicator">
+        <div class="indicator-label">MA5</div>
+        <div class="indicator-value" id="ma5-gold">—</div>
+      </div>
+      <div class="indicator">
+        <div class="indicator-label">MA20</div>
+        <div class="indicator-value" id="ma20-gold">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button id="refresh-btn" onclick="loadAll()" style="display:none">🔄 Aggiorna dati</button>
+
+<footer>
+  <p>Dati forniti da Alpha Vantage · Segnali basati su RSI(14) + MA5/MA20</p>
+  <p style="margin-top:6px"><strong>⚠️ Solo scopo informativo — non è consulenza finanziaria</strong></p>
+</footer>
+
+<script>
+  const API_KEY_STORAGE = 'av_api_key';
+
+  // ── UTILITIES ──────────────────────────────────────────────
+  function calcRSI(closes, period = 14) {
+    if (closes.length < period + 1) return null;
+    let gains = 0, losses = 0;
+    for (let i = 1; i <= period; i++) {
+      const diff = closes[i] - closes[i - 1];
+      if (diff >= 0) gains += diff; else losses -= diff;
+    }
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+    for (let i = period + 1; i < closes.length; i++) {
+      const diff = closes[i] - closes[i - 1];
+      avgGain = (avgGain * (period - 1) + Math.max(diff, 0)) / period;
+      avgLoss = (avgLoss * (period - 1) + Math.max(-diff, 0)) / period;
+    }
+    if (avgLoss === 0) return 100;
+    const rs = avgGain / avgLoss;
+    return 100 - 100 / (1 + rs);
+  }
+
+  function calcMA(closes, period) {
+    if (closes.length < period) return null;
+    return closes.slice(-period).reduce((a, b) => a + b, 0) / period;
+  }
+
+  function computeSignal(rsi, ma5, ma20) {
+    let score = 0;
+    let reasons = [];
+
+    if (rsi !== null) {
+      if (rsi < 30)      { score -= 2; reasons.push(`RSI ${rsi.toFixed(1)} (ipervenduto)`); }
+      else if (rsi < 45) { score -= 1; reasons.push(`RSI ${rsi.toFixed(1)} (debolezza)`); }
+      else if (rsi > 70) { score += 2; reasons.push(`RSI ${rsi.toFixed(1)} (ipercomprato)`); }
+      else if (rsi > 55) { score += 1; reasons.push(`RSI ${rsi.toFixed(1)} (forza)`); }
+      else                { reasons.push(`RSI ${rsi.toFixed(1)} (neutro)`); }
+    }
+
+    if (ma5 !== null && ma20 !== null) {
+      if (ma5 > ma20)   { score -= 1; reasons.push('MA5 > MA20 (trend rialzista)'); }
+      else               { score += 1; reasons.push('MA5 < MA20 (trend ribassista)'); }
+    }
+
+    // score > 0 → SHORT (prezzo alto, probabile discesa)
+    // score < 0 → LONG  (prezzo basso, probabile salita)
+    if (score >= 2)       return { signal: 'SHORT', cls: 'badge-short',   reason: reasons.join(' · ') };
+    if (score <= -2)      return { signal: 'LONG',  cls: 'badge-long',    reason: reasons.join(' · ') };
+    return                       { signal: 'NEUTRO',cls: 'badge-neutral', reason: reasons.join(' · ') };
+  }
+
+  function renderCard(id, price, prevPrice, closes, decimals = 4) {
+    const fmt = v => v.toFixed(decimals);
+    const change = price - prevPrice;
+    const changePct = (change / prevPrice * 100).toFixed(2);
+    const positive = change >= 0;
+
+    document.getElementById(`price-${id}`).textContent = fmt(price);
+
+    const changeEl = document.getElementById(`change-${id}`);
+    changeEl.textContent = `${positive ? '+' : ''}${fmt(change)} (${positive ? '+' : ''}${changePct}%)`;
+    changeEl.className = `price-change ${positive ? 'positive' : 'negative'}`;
+
+    const rsi  = calcRSI(closes);
+    const ma5  = calcMA(closes, 5);
+    const ma20 = calcMA(closes, 20);
+    const { signal, cls, reason } = computeSignal(rsi, ma5, ma20);
+
+    const sigEl = document.getElementById(`signal-${id}`);
+    sigEl.textContent = signal;
+    sigEl.className = `signal-badge ${cls}`;
+    document.getElementById(`reason-${id}`).textContent = reason;
+
+    document.getElementById(`rsi-${id}`).textContent  = rsi  ? rsi.toFixed(1)  : '—';
+    document.getElementById(`ma5-${id}`).textContent  = ma5  ? fmt(ma5)  : '—';
+    document.getElementById(`ma20-${id}`).textContent = ma20 ? fmt(ma20) : '—';
+
+    const rsiEl = document.getElementById(`rsi-${id}`);
+    if (rsi) {
+      rsiEl.className = `indicator-value ${rsi > 70 ? 'negative' : rsi < 30 ? 'positive' : 'neutral'}`;
+    }
+  }
+
+  function setError(id, msg) {
+    document.getElementById(`price-${id}`).textContent = 'Errore';
+    document.getElementById(`change-${id}`).textContent = msg;
+    document.getElementById(`signal-${id}`).textContent = '—';
+    document.getElementById(`reason-${id}`).textContent = msg;
+  }
+
+  // ── FETCH EUR/USD ───────────────────────────────────────────
+  async function fetchForex(from, to, apiKey) {
+    const url = `https://www.alphavantage.co/query?function=FX_DAILY&from_symbol=${from}&to_symbol=${to}&outputsize=compact&apikey=${apiKey}`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if (data['Error Message'] || data['Note']) throw new Error(data['Error Message'] || data['Note']);
+    const ts = data['Time Series FX (Daily)'];
+    const dates = Object.keys(ts).sort().reverse().slice(0, 30);
+    const closes = dates.map(d => parseFloat(ts[d]['4. close'])).reverse();
+    return closes;
+  }
+
+  // ── FETCH WTI OIL ───────────────────────────────────────────
+  async function fetchCommodity(symbol, apiKey) {
+    const url = `https://www.alphavantage.co/query?function=${symbol}&interval=daily&apikey=${apiKey}`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if (data['Error Message'] || data['Note']) throw new Error(data['Error Message'] || data['Note']);
+    const ts = data.data;
+    const recent = ts.filter(d => d.value !== '.').slice(0, 30).reverse();
+    return recent.map(d => parseFloat(d.value));
+  }
+
+  // ── FETCH GOLD (XAU/USD) ────────────────────────────────────
+  async function fetchGold(apiKey) {
+    // Gold via forex endpoint
+    return fetchForex('XAU', 'USD', apiKey);
+  }
+
+  // ── LOAD ALL ────────────────────────────────────────────────
+  async function loadAll() {
+    const apiKey = localStorage.getItem(API_KEY_STORAGE);
+    if (!apiKey) return;
+
+    document.getElementById('refresh-btn').innerHTML = '<span class="spinner">⟳</span> Aggiornamento...';
+
+    // Reset segnali
+    ['eurusd','oil','gold'].forEach(id => {
+      document.getElementById(`signal-${id}`).textContent = '...';
+      document.getElementById(`signal-${id}`).className = 'signal-badge badge-loading';
+      document.getElementById(`reason-${id}`).textContent = 'Caricamento...';
+    });
+
+    // EUR/USD
+    try {
+      const closes = await fetchForex('EUR', 'USD', apiKey);
+      renderCard('eurusd', closes.at(-1), closes.at(-2), closes, 4);
+    } catch(e) {
+      setError('eurusd', e.message.includes('Note') ? 'Limite API raggiunto (25/giorno)' : e.message);
+    }
+
+    // OIL WTI
+    try {
+      const closes = await fetchCommodity('WTI', apiKey);
+      renderCard('oil', closes.at(-1), closes.at(-2), closes, 2);
+    } catch(e) {
+      setError('oil', e.message.includes('Note') ? 'Limite API raggiunto (25/giorno)' : e.message);
+    }
+
+    // GOLD
+    try {
+      const closes = await fetchGold(apiKey);
+      renderCard('gold', closes.at(-1), closes.at(-2), closes, 2);
+    } catch(e) {
+      setError('gold', e.message.includes('Note') ? 'Limite API raggiunto (25/giorno)' : e.message);
+    }
+
+    const now = new Date().toLocaleString('it-IT');
+    document.getElementById('last-update').textContent = `Ultimo aggiornamento: ${now}`;
+    document.getElementById('refresh-btn').innerHTML = '🔄 Aggiorna dati';
+  }
+
+  // ── API KEY ─────────────────────────────────────────────────
+  function saveApiKey() {
+    const key = document.getElementById('api-key-input').value.trim();
+    if (!key) { alert('Inserisci una chiave API valida'); return; }
+    localStorage.setItem(API_KEY_STORAGE, key);
+    document.getElementById('api-setup').style.display = 'none';
+    document.getElementById('refresh-btn').style.display = 'block';
+    loadAll();
+  }
+
+  // ── INIT ────────────────────────────────────────────────────
+  window.onload = () => {
+    const saved = localStorage.getItem(API_KEY_STORAGE);
+    if (saved) {
+      document.getElementById('api-setup').style.display = 'none';
+      document.getElementById('refresh-btn').style.display = 'block';
+      loadAll();
+    }
+  };
+</script>
+</body>
+</html>
