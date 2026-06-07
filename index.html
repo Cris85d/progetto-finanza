@@ -296,7 +296,7 @@
       <div class="card-inner">
         <div class="card-header">
           <div>
-            <div class="card-name">💶 EUR / USD</div>
+            <div class="card-name">💶 EUR / USD <span style="color:var(--blue);font-size:.65rem;margin-left:4px">1H</span></div>
             <div class="card-price" id="price-eurusd">—</div>
             <div class="card-change" id="change-eurusd">Caricamento...</div>
           </div>
@@ -320,7 +320,7 @@
       <div class="card-inner">
         <div class="card-header">
           <div>
-            <div class="card-name">🛢️ Petrolio WTI</div>
+            <div class="card-name">🛢️ Petrolio WTI <span style="color:var(--yellow);font-size:.65rem;margin-left:4px">1D</span></div>
             <div class="card-price" id="price-oil">—</div>
             <div class="card-change" id="change-oil">Caricamento...</div>
           </div>
@@ -486,12 +486,13 @@ function setErr(id, msg) {
 }
 
 // ── FETCH ──────────────────────────────────────────────────────
-async function fetchForex(from, to, key) {
-  const url = `https://www.alphavantage.co/query?function=FX_DAILY&from_symbol=${from}&to_symbol=${to}&outputsize=compact&apikey=${key}`;
+async function fetchForexIntraday(from, to, key) {
+  // Dati orari EUR/USD (ultimi ~60 punti = ~60 ore)
+  const url = `https://www.alphavantage.co/query?function=FX_INTRADAY&from_symbol=${from}&to_symbol=${to}&interval=60min&outputsize=compact&apikey=${key}`;
   const d = await (await fetch(url)).json();
   if (d['Error Message']) throw new Error('Chiave API non valida');
   if (d['Note'] || d['Information']) throw new Error('Limite giornaliero raggiunto (25 richieste/giorno). Riprova domani.');
-  const ts = d['Time Series FX (Daily)'];
+  const ts = d['Time Series FX (60min)'];
   return Object.keys(ts).sort().slice(-60).map(k => parseFloat(ts[k]['4. close']));
 }
 
@@ -517,7 +518,7 @@ async function loadAll() {
   // Le richieste vengono fatte in sequenza con 15s di pausa
   // perché la chiave gratuita permette solo 5 richieste al minuto
 
-  try { await fetchForex('EUR','USD',key).then(c=>renderCard('eurusd',c)); }
+  try { await fetchForexIntraday('EUR','USD',key).then(c=>renderCard('eurusd',c)); }
   catch(e) { setErr('eurusd', e.message); }
 
   await sleep(10000);
