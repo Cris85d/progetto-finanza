@@ -305,7 +305,7 @@
           </div>
         </div>
         <div class="indicators">
-          <div class="ind"><div class="ind-label">RSI 14</div><div class="ind-val" id="rsi-eurusd">—</div></div>
+          <div class="ind"><div class="ind-label">RSI 30</div><div class="ind-val" id="rsi-eurusd">—</div></div>
           <div class="ind"><div class="ind-label">MA 5</div><div class="ind-val" id="ma5-eurusd">—</div></div>
           <div class="ind"><div class="ind-label">MA 20</div><div class="ind-val" id="ma20-eurusd">—</div></div>
         </div>
@@ -329,7 +329,7 @@
           </div>
         </div>
         <div class="indicators">
-          <div class="ind"><div class="ind-label">RSI 14</div><div class="ind-val" id="rsi-oil">—</div></div>
+          <div class="ind"><div class="ind-label">RSI 30</div><div class="ind-val" id="rsi-oil">—</div></div>
           <div class="ind"><div class="ind-label">MA 5</div><div class="ind-val" id="ma5-oil">—</div></div>
           <div class="ind"><div class="ind-label">MA 20</div><div class="ind-val" id="ma20-oil">—</div></div>
         </div>
@@ -452,7 +452,7 @@ function renderCard(id, closes) {
   chEl.textContent = `${change>=0?'+':''}${change.toFixed(dec)} (${change>=0?'+':''}${pct}%)`;
   chEl.style.color = change >= 0 ? 'var(--green)' : 'var(--red)';
 
-  const rsi  = calcRSI(closes);
+  const rsi  = calcRSI(closes, 30);
   const ma5  = calcMA(closes, 5);
   const ma20 = calcMA(closes, 20);
   const { signal, type, reason } = computeSignal(rsi, ma5, ma20);
@@ -492,7 +492,7 @@ async function fetchForex(from, to, key) {
   if (d['Error Message']) throw new Error('Chiave API non valida');
   if (d['Note'] || d['Information']) throw new Error('Limite giornaliero raggiunto (25 richieste/giorno). Riprova domani.');
   const ts = d['Time Series FX (Daily)'];
-  return Object.keys(ts).sort().slice(-30).map(k => parseFloat(ts[k]['4. close']));
+  return Object.keys(ts).sort().slice(-60).map(k => parseFloat(ts[k]['4. close']));
 }
 
 async function fetchCommodity(sym, key) {
@@ -500,7 +500,7 @@ async function fetchCommodity(sym, key) {
   const d = await (await fetch(url)).json();
   if (d['Error Message']) throw new Error('Chiave API non valida');
   if (d['Note'] || d['Information']) throw new Error('Limite giornaliero raggiunto. Riprova domani.');
-  return d.data.filter(x=>x.value!=='.').slice(0,30).reverse().map(x=>parseFloat(x.value));
+  return d.data.filter(x=>x.value!=='.').slice(0,60).reverse().map(x=>parseFloat(x.value));
 }
 
 // ── LOAD ALL ───────────────────────────────────────────────────
