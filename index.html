@@ -549,12 +549,13 @@ function changeKey() {
 
 // ── INIT ───────────────────────────────────────────────────────
 window.onload = () => {
-  const k = localStorage.getItem('av_key');
-  if (k) {
-    document.getElementById('api-setup').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    loadAll();
+  // Chiave preimpostata — nessun inserimento richiesto
+  if (!localStorage.getItem('av_key')) {
+    localStorage.setItem('av_key', 'JAE38YT5L4PSY6X1');
   }
+  document.getElementById('api-setup').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  loadAll();
 };
 </script>
 </body>
